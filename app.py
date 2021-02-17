@@ -124,8 +124,9 @@ def get_table_download_link(df):
 	out: href string
 	"""
 	val = to_excel(df)
-	b64 = base64.b64encode(val)  # val looks like b'...'
-	return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="extract.xlsx">Download csv file</a>' # decode b'abc' => abc
+	b64 = base64.b64encode(val).decode() # val looks like b'...'
+	href=f'<a href="data:application/octet-stream;base64,{b64}" download="captura.xlsx" target="_blank">Descargar: Haga clic derecho y guardar enlace como...</a>' # decode b'abc' => abc	
+	return href
 
 # Obtener tweets de usuarios y palabras entre 2 fechas
 def obtener_tweets (cuenta,palabra,f_ini, f_fin, captura):
@@ -475,9 +476,31 @@ def main(state):
 			col2.pyplot(fig2)
 			
    			# Nube palabras
+			# Wordcloud
+			st.subheader("Wordcloud")
+			tweets=df1
+			tweetprocess(tweets,100)
 
+			# Sentimiento
+			st.subheader("Análisis de sentimientos")
+			contenido_lista=df1['contenido'] 
+			lista_sentimientos=senti_calc(contenido_lista)
+			df1['senti_prob'] = lista_sentimientos['senti_prob']
+			df1['senti_label'] = lista_sentimientos['senti_label']
 
+			st.dataframe(df1.head())
 
+			col1, col2 = st.beta_columns(2)
+
+			col1.text("Usuario - Sentimientos")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(y="username", hue="senti_label", data=df1)
+			col1.pyplot(fig)
+
+			col2.text("Palabra - Usuario")
+			fig2, ax2 = plt.subplots()
+			ax2=sns.countplot(x="senti_label", data=df1)   
+			col2.pyplot(fig2)
    
 		# -----------------------------------
 	elif choice == 'Twitter-coordenadas':
@@ -568,6 +591,31 @@ def main(state):
 			ax2=sns.countplot(y="palabra_clave", hue="username", data=df1)   
 			col2.pyplot(fig2)
 
+			# Wordcloud
+			st.subheader("Wordcloud")
+			tweets=df1
+			tweetprocess(tweets,100)
+
+			# Sentimiento
+			st.subheader("Análisis de sentimientos")
+			contenido_lista=df1['contenido'] 
+			lista_sentimientos=senti_calc(contenido_lista)
+			df1['senti_prob'] = lista_sentimientos['senti_prob']
+			df1['senti_label'] = lista_sentimientos['senti_label']
+
+			st.dataframe(df1.head())
+
+			col1, col2 = st.beta_columns(2)
+
+			col1.text("Usuario - Sentimientos")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(y="username", hue="senti_label", data=df1)
+			col1.pyplot(fig)
+
+			col2.text("Palabra - Usuario")
+			fig2, ax2 = plt.subplots()
+			ax2=sns.countplot(x="senti_label", data=df1)   
+			col2.pyplot(fig2)
 
 #obtener_tweets_de_ciudad_palabras
 	elif choice == 'Twitter-ciudad':
@@ -652,7 +700,31 @@ def main(state):
 			ax2=sns.countplot(y="palabra_clave", hue="username", data=df1)   
 			col2.pyplot(fig2)
 
-			
+			# Wordcloud
+			st.subheader("Wordcloud")
+			tweets=df1
+			tweetprocess(tweets,100)
+
+			# Sentimiento
+			st.subheader("Análisis de sentimientos")
+			contenido_lista=df1['contenido'] 
+			lista_sentimientos=senti_calc(contenido_lista)
+			df1['senti_prob'] = lista_sentimientos['senti_prob']
+			df1['senti_label'] = lista_sentimientos['senti_label']
+
+			st.dataframe(df1.head())
+
+			col1, col2 = st.beta_columns(2)
+
+			col1.text("Usuario - Sentimientos")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(y="username", hue="senti_label", data=df1)
+			col1.pyplot(fig)
+
+			col2.text("Palabra - Usuario")
+			fig2, ax2 = plt.subplots()
+			ax2=sns.countplot(x="senti_label", data=df1)   
+			col2.pyplot(fig2)			
 
 	elif choice == 'test':
 		arr = np.random.normal(1, 1, size=100)
@@ -704,15 +776,40 @@ def main(state):
 			ax=sns.countplot("username", data=df)
 			st.pyplot(fig)
 
+			# Wordcloud
+			st.subheader("Wordcloud")
+			tweets=df1
+			tweetprocess(tweets,100)
+
+			# Sentimiento
+			st.subheader("Análisis de sentimientos")
+			contenido_lista=df1['contenido'] 
+			lista_sentimientos=senti_calc(contenido_lista)
+			df1['senti_prob'] = lista_sentimientos['senti_prob']
+			df1['senti_label'] = lista_sentimientos['senti_label']
+
+			st.dataframe(df1.head())
+
+			col1, col2 = st.beta_columns(2)
+
+			col1.text("Usuario - Sentimientos")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(y="username", hue="senti_label", data=df1)
+			col1.pyplot(fig)
+
+			col2.text("Palabra - Usuario")
+			fig2, ax2 = plt.subplots()
+			ax2=sns.countplot(x="senti_label", data=df1)   
+			col2.pyplot(fig2)
+
 	elif choice == 'Créditos':
 		st.subheader("Jorge O. Cifuentes")
 		body='<a href="https://www.quidlab.co">https://www.quidlab.co</a>'
 		st.markdown(body, unsafe_allow_html=True)
 		st.write('Email: *jorge@quidlab.co* :heart:')
-
+		st.write("Social Network Analyzer Version 1.02")
+		st.write("Agregado: Nube de palabras y análisis de sentimiento")
 		st.text("")
-
-
 
 if __name__ == "__main__":
 	main()
