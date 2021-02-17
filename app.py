@@ -23,7 +23,7 @@ from nltk.corpus import stopwords
 stop_words_sp = set(stopwords.words('spanish'))
 from nltk import tokenize
 from wordcloud import WordCloud, STOPWORDS
-from classifier import SentimentClassifier # scikit-learn 0.19.2 (se requiere una versión vieja para que funcione)
+from classifier import * # scikit-learn 0.19.2 (se requiere una versión vieja para que funcione)
 
 clf = SentimentClassifier()
 
