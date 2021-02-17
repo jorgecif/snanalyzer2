@@ -104,7 +104,7 @@ def senti_calc(contenido):
 		else:
 			label='Negativo'
 		senti_result['senti_label'].append(label)
-		time.sleep(1)
+		#time.sleep(1)
 	return senti_result
 
 
@@ -333,7 +333,7 @@ def main(state):
 
   			# Imprimo resultado
 			st.subheader("Resultado de la consulta")
-			st.dataframe(df1.head())
+			st.dataframe(df1)
 			df = df1 # your dataframe
 			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
@@ -369,8 +369,9 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1.head())
-
+			st.dataframe(df1)
+			df = df1 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 			col1, col2 = st.beta_columns(2)
 
 			col1.text("Usuario - Sentimientos")
@@ -456,7 +457,7 @@ def main(state):
 			df1=pd.DataFrame.from_dict(captura) 
 			st.write('Se encontraron ', len(df1), " tweets")
   			# Imprimo resultado
-			st.dataframe(df1.head())
+			st.dataframe(df1)
 			df = df1 # your dataframe
 			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
@@ -488,8 +489,10 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1.head())
-
+			st.dataframe(df1)
+			df = df1 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+   
 			col1, col2 = st.beta_columns(2)
 
 			col1.text("Usuario - Sentimientos")
@@ -570,7 +573,7 @@ def main(state):
 			df1=pd.DataFrame.from_dict(captura) 
 			st.write('Se encontraron ', len(df1), " tweets")
   			# Imprimo resultado
-			st.dataframe(df1.head())
+			st.dataframe(df1)
 			df = df1 # your dataframe
 			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
@@ -603,7 +606,9 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1.head())
+			st.dataframe(df1)
+			df = df1 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
 			col1, col2 = st.beta_columns(2)
 
@@ -682,7 +687,7 @@ def main(state):
 			df1=pd.DataFrame.from_dict(captura) 
 			st.write('Se encontraron ', len(df1), " tweets")
   			# Imprimo resultado
-			st.dataframe(df1.head())
+			st.dataframe(df1)
 			df = df1 # your dataframe
 			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
@@ -712,8 +717,9 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1.head())
-
+			st.dataframe(df1)
+			df = df1 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 			col1, col2 = st.beta_columns(2)
 
 			col1.text("Usuario - Sentimientos")
@@ -767,7 +773,7 @@ def main(state):
 			# Imprimo resultado
 			df1=pd.DataFrame.from_dict(captura) 
 			st.write('Se encontraron ', len(df1), " posts")
-			st.dataframe(df1.head())
+			st.dataframe(df1)
 			df = df1 # your dataframe
 			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
@@ -788,8 +794,9 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1.head())
-
+			st.dataframe(df1)
+			df = df1 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 			col1, col2 = st.beta_columns(2)
 
 			col1.text("Usuario - Sentimientos")
