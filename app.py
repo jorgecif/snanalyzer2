@@ -25,9 +25,6 @@ from nltk import tokenize
 from wordcloud import WordCloud, STOPWORDS
 from classifier import * # scikit-learn 0.19.2 (se requiere una versión vieja para que funcione)
 
-clf = SentimentClassifier()
-
-
 # Parámetros
 activities = ["Seleccione", "Twitter-usuario","Twitter-término","Twitter-coordenadas","Twitter-ciudad","Facebook","Créditos"]
 analisis = ["Seleccione", "Graficas", "Nube de palabras","Sentimientos"]
@@ -92,6 +89,7 @@ def tweetprocess(tweets,idgraf):
 
 def senti_calc(contenido):
 #senti_result = {"senti_prob":[],"senti_label":[]}
+	clf = SentimentClassifier()
 	senti_result = {"senti_prob":[],"senti_label":[]}
 	for i in range(0,len(contenido)):
 		resultado=clf.predict(str(contenido[i]))
