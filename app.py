@@ -1,6 +1,8 @@
 import streamlit as st
 from state import provide_state
-import datetime
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
 import time
 import pandas as pd 
 import numpy as np
@@ -24,6 +26,9 @@ stop_words_sp = set(stopwords.words('spanish'))
 from nltk import tokenize
 from wordcloud import WordCloud, STOPWORDS
 from classifier import * # scikit-learn 0.19.2 (se requiere una versión vieja para que funcione)
+
+
+
 
 # Parámetros
 activities = ["Seleccione", "Twitter-usuario","Twitter-término","Twitter-coordenadas","Twitter-ciudad","Facebook","Créditos"]
@@ -49,8 +54,8 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # Wordcloud
 def wordcloud(tweets,col,idgraf):
 	#Crear la imagen con las palabras más frecuentes
-	wordcloud = WordCloud(background_color="white",stopwords=stop_words_sp,random_state = 2016).generate(" ".join([i for i in tweets[col]]))
-	#Preparar la figura
+	wordcloud = WordCloud(background_color="white",stopwords=stop_words_sp,random_state = 2016, width=800, height=400).generate(" ".join([i for i in tweets[col]]))
+ #Preparar la figura
 	fig = plt.figure(num=idgraf, figsize=(50,20), facecolor='k')
 	plt.imshow(wordcloud)
 	#fig, ax = plt.figure(num=idgraf, figsize=(20,10), facecolor='k')
@@ -233,6 +238,41 @@ def obtener_post_facebook(cuenta_fb, paginas,captura):
 		captura['url'].append(post['post_url'])
 	return captura
 
+def convertir_fechas(df): #  Rutina para convertir fecha y tiempo a datetime y poder graficar
+	df1=df	
+	lista_fecha=[]
+	lista_hora=[]
+	lista_hora_del_dia=[]
+	lista_ano=[]
+	lista_mes=[]
+	lista_dia=[]
+	for i in range(0,len(df1)):
+		fecha=df1["fecha"][i]
+		date_time_str = fecha
+		date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
+		lista_fecha.append(date_time_obj.date())
+		lista_hora.append(date_time_obj.time())
+		lista_hora_del_dia.append((date_time_obj.hour))
+		mes=str(date_time_obj.month)
+		if len(mes) == 1:
+			mes='0'+mes
+		dia=str(date_time_obj.day)
+		if len(dia) == 1:
+			dia='0'+dia
+		lista_ano.append(date_time_obj.year)
+		lista_mes.append(mes)
+		lista_dia.append(dia)
+
+	# Añado listas al dataframe
+	df1['solo_fecha'] = lista_fecha
+	df1['solo_hora'] = lista_hora 
+	df1['hora_del_dia'] = lista_hora_del_dia 
+	df1['ano'] = lista_ano
+	df1['mes'] = lista_mes 
+	df1['dia'] = lista_dia 
+	df1['ano_mes'] = df1['ano'].astype(str) + "-" + df1['mes'].astype(str)
+	return df1
+
 
 @provide_state
 def main(state):
@@ -292,8 +332,8 @@ def main(state):
 		# ------ Input fechas
 		st.subheader("Rango de fechas")
 		
-		today = datetime.date.today()
-		tomorrow = today + datetime.timedelta(days=1)
+		today = date.today()
+		tomorrow = today + timedelta(days=1)
 		c5, c6 = st.beta_columns([1, 1])
 
 		f_ini = c5.date_input('Fecha inicio', today)
@@ -326,7 +366,8 @@ def main(state):
 					captura=obtener_tweets(cuenta,palabra,f_ini, f_fin, captura)
 					time.sleep(5)
 
-			df1=pd.DataFrame.from_dict(captura) 
+			df1=pd.DataFrame.from_dict(captura)
+
 			st.write('Se encontraron ', len(df1), " tweets")
 
   			# Imprimo resultado
@@ -367,10 +408,6 @@ def main(state):
 			df1['senti_prob'] = lista_sentimientos['senti_prob']
 			df1['senti_label'] = lista_sentimientos['senti_label']
 
-			st.dataframe(df1)
-			df = df1 # your dataframe
-			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
-			col1, col2 = st.beta_columns(2)
 
 			col1.text("Usuario - Sentimientos")
 			fig, ax = plt.subplots()
@@ -381,6 +418,37 @@ def main(state):
 			fig2, ax2 = plt.subplots()
 			ax2=sns.countplot(x="senti_label", data=df1)   
 			col2.pyplot(fig2)
+
+			# Gráfica fechas
+			df2=convertir_fechas(df1)
+			st.subheader("Publicaciones - dia por día")
+			col1.text("Publicaciones - dia por día")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="solo_fecha", data=df2, order=df1['solo_fecha'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - mes por mes")
+			col1.text("Publicaciones - mes por mes")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="ano_mes", data=df2, order=df1['ano_mes'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - hora por hora")
+			col1.text("Publicaciones - hora")
+   
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="hora_del_dia", data=df2, order=df1['hora_del_dia'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+			# Dataframe descargar
+			st.dataframe(df1)
+			df = df2 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+			col1, col2 = st.beta_columns(2)
 
 	elif choice == 'Twitter-término':
 		st.subheader("Obtiene tweets cruzados entre un término principal y una lista de palabras clave")
@@ -419,8 +487,8 @@ def main(state):
 		# ------ Input fechas
 		st.subheader("Rango de fechas")
 		
-		today = datetime.date.today()
-		tomorrow = today + datetime.timedelta(days=1)
+		today = date.today()
+		tomorrow = today + timedelta(days=1)
 		c5, c6 = st.beta_columns([1, 1])
 
 		f_ini = c5.date_input('Fecha inicio', today)
@@ -462,6 +530,8 @@ def main(state):
 			# Gráficas
 			fig, ax = plt.subplots()
 			ax=sns.countplot("username", data=df)
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
 			st.pyplot(fig)
 
 			col1, col2 = st.beta_columns(2)
@@ -472,6 +542,7 @@ def main(state):
 			col2.subheader("Palabra - Usuario")
 			fig2, ax2 = plt.subplots()
 			ax2=sns.countplot(y="palabra_clave", hue="termino_ppal", data=df1)   
+
 			col2.pyplot(fig2)
 			
    			# Nube palabras
@@ -481,6 +552,7 @@ def main(state):
 			tweetprocess(tweets,100)
 
 			# Sentimiento
+			clf = SentimentClassifier()
 			st.subheader("Análisis de sentimientos")
 			contenido_lista=df1['contenido'] 
 			lista_sentimientos=senti_calc(contenido_lista)
@@ -495,14 +567,42 @@ def main(state):
 
 			col1.text("Usuario - Sentimientos")
 			fig, ax = plt.subplots()
-			ax=sns.countplot(y="username", hue="senti_label", data=df1)
+			ax=sns.countplot(y="username", hue="senti_label", data=df1, orient="v")
 			col1.pyplot(fig)
 
 			col2.text("Palabra - Usuario")
 			fig2, ax2 = plt.subplots()
 			ax2=sns.countplot(x="senti_label", data=df1)   
 			col2.pyplot(fig2)
+
+
+			# Gráfica fechas
+			df2=convertir_fechas(df1)
+			st.subheader("Publicaciones - dia por día")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="solo_fecha", data=df2, order=df1['solo_fecha'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - mes por mes")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="ano_mes", data=df2, order=df1['ano_mes'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - hora por hora")
    
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="hora_del_dia", data=df2, order=df1['hora_del_dia'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+			# Dataframe descargar
+			st.dataframe(df1)
+			df = df2 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+
 		# -----------------------------------
 	elif choice == 'Twitter-coordenadas':
 		st.subheader("Obtiene tweets de un punto central en unas coordenadas con un radio R y asociadas a una lista de palabras clave")
@@ -534,8 +634,8 @@ def main(state):
 		# ------ Input fechas
 		st.subheader("Rango de fechas")
 		
-		today = datetime.date.today()
-		tomorrow = today + datetime.timedelta(days=1)
+		today = date.today()
+		tomorrow = today + timedelta(days=1)
 		c3_6, c3_7 = st.beta_columns([1, 1])
 
 		f_ini = c3_6.date_input('Fecha inicio', today)
@@ -620,6 +720,36 @@ def main(state):
 			ax2=sns.countplot(x="senti_label", data=df1)   
 			col2.pyplot(fig2)
 
+			# Gráfica fechas
+			df2=convertir_fechas(df1)
+			st.subheader("Publicaciones - dia por día")
+			col1.text("Publicaciones - dia por día")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="solo_fecha", data=df2, order=df1['solo_fecha'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - mes por mes")
+			col1.text("Publicaciones - mes por mes")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="ano_mes", data=df2, order=df1['ano_mes'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - hora por hora")
+			col1.text("Publicaciones - hora")
+   
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="hora_del_dia", data=df2, order=df1['hora_del_dia'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+			# Dataframe descargar
+			st.dataframe(df1)
+			df = df2 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
+
 #obtener_tweets_de_ciudad_palabras
 	elif choice == 'Twitter-ciudad':
 		st.subheader("Obtiene tweets desde un punto central en una ciudad, con un radio R y asociadas a una lista de palabras clave")
@@ -650,8 +780,8 @@ def main(state):
 		# ------ Input fechas
 		st.subheader("Rango de fechas")
 		
-		today = datetime.date.today()
-		tomorrow = today + datetime.timedelta(days=1)
+		today = date.today()
+		tomorrow = today + timedelta(days=1)
 		c4_6, c4_7 = st.beta_columns([1, 1])
 
 		f_ini = c4_6.date_input('Fecha inicio', today)
@@ -729,6 +859,36 @@ def main(state):
 			fig2, ax2 = plt.subplots()
 			ax2=sns.countplot(x="senti_label", data=df1)   
 			col2.pyplot(fig2)			
+
+			# Gráfica fechas
+			df2=convertir_fechas(df1)
+			st.subheader("Publicaciones - dia por día")
+			col1.text("Publicaciones - dia por día")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="solo_fecha", data=df2, order=df1['solo_fecha'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - mes por mes")
+			col1.text("Publicaciones - mes por mes")
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="ano_mes", data=df2, order=df1['ano_mes'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+			st.pyplot(fig)
+
+			st.subheader("Publicaciones - hora por hora")
+			col1.text("Publicaciones - hora")
+   
+			fig, ax = plt.subplots()
+			ax=sns.countplot(x="hora_del_dia", data=df2, order=df1['hora_del_dia'].drop_duplicates().sort_values())
+			ax.set_xticklabels(ax.get_xticklabels(), rotation=30)
+
+			st.pyplot(fig)
+			# Dataframe descargar
+			st.dataframe(df1)
+			df = df2 # your dataframe
+			st.markdown(get_table_download_link(df), unsafe_allow_html=True)
 
 	elif choice == 'test':
 		arr = np.random.normal(1, 1, size=100)
@@ -812,7 +972,7 @@ def main(state):
 		body='<a href="https://www.quidlab.co">https://www.quidlab.co</a>'
 		st.markdown(body, unsafe_allow_html=True)
 		st.write('Email: *jorge@quidlab.co* :heart:')
-		st.write("Social Network Analyzer Version 1.02")
+		st.write("Social Network Analyzer Version 1.03")
 		st.write("Agregado: Nube de palabras y análisis de sentimiento")
 		st.text("")
 
